@@ -55,8 +55,8 @@ export default function ExerciseCard({ uebung, state, onChange }) {
     <div
       className={`rounded-xl border transition-colors ${
         abgeschlossen
-          ? 'bg-gray-800/50 border-orange-500/50'
-          : 'bg-gray-800 border-gray-700'
+          ? 'bg-zinc-900/50 border-zinc-500/50'
+          : 'bg-zinc-900 border-zinc-700'
       }`}
     >
       {/* Header */}
@@ -74,7 +74,7 @@ export default function ExerciseCard({ uebung, state, onChange }) {
         <div className="flex items-center gap-2 ml-2">
           <span className="text-xs text-gray-400">{erledigt}/{anzahlSaetze}</span>
           {progressionsFeedback.typ === 'erhoehung' && (
-            <span className="text-xs bg-green-900/60 text-green-400 border border-green-700/50 rounded-full px-2 py-0.5 font-medium">
+            <span className="text-xs bg-zinc-800 text-white border border-zinc-600 rounded-full px-2 py-0.5 font-medium">
               ↑ Gewicht
             </span>
           )}
@@ -83,8 +83,8 @@ export default function ExerciseCard({ uebung, state, onChange }) {
 
       {/* Progressions-Banner */}
       {progressionsFeedback.typ === 'erhoehung' && (
-        <div className="mx-4 mb-2 px-3 py-2 bg-green-900/40 border border-green-700/50 rounded-lg">
-          <p className="text-xs text-green-400">{progressionsFeedback.nachricht}</p>
+        <div className="mx-4 mb-2 px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg">
+          <p className="text-xs text-gray-100">{progressionsFeedback.nachricht}</p>
         </div>
       )}
 
@@ -104,7 +104,7 @@ export default function ExerciseCard({ uebung, state, onChange }) {
             className={`grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 mb-2 items-center`}
           >
             {/* Satz-Nummer */}
-            <span className={`text-sm font-bold text-center ${satz.checked ? 'text-orange-500' : 'text-gray-500'}`}>
+            <span className={`text-sm font-bold text-center ${satz.checked ? 'text-white' : 'text-gray-500'}`}>
               {i + 1}
             </span>
 
@@ -115,7 +115,7 @@ export default function ExerciseCard({ uebung, state, onChange }) {
               step="0.5"
               value={satz.gewicht}
               onChange={(e) => updateSatz(i, 'gewicht', e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-sm text-center text-white focus:outline-none focus:border-orange-500 w-full"
+              className="bg-zinc-800 border border-zinc-600 rounded-lg px-2 py-1.5 text-sm text-center text-white focus:outline-none focus:border-zinc-300 w-full"
               placeholder="kg"
             />
 
@@ -126,7 +126,7 @@ export default function ExerciseCard({ uebung, state, onChange }) {
               max="99"
               value={satz.wdh}
               onChange={(e) => updateSatz(i, 'wdh', e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-sm text-center text-white focus:outline-none focus:border-orange-500 w-full"
+              className="bg-zinc-800 border border-zinc-600 rounded-lg px-2 py-1.5 text-sm text-center text-white focus:outline-none focus:border-zinc-300 w-full"
               placeholder="Wdh"
             />
 
@@ -154,7 +154,7 @@ export default function ExerciseCard({ uebung, state, onChange }) {
             max="10"
             value={rir}
             onChange={(e) => onChange({ ...state, saetze, rir: e.target.value })}
-            className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-orange-500 w-16 text-center"
+            className="bg-zinc-800 border border-zinc-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-zinc-300 w-16 text-center"
             placeholder="0-5"
           />
         </div>
@@ -165,7 +165,7 @@ export default function ExerciseCard({ uebung, state, onChange }) {
           onChange={(e) => onChange({ ...state, saetze, notiz: e.target.value })}
           placeholder="Notizen..."
           rows={2}
-          className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 resize-none"
+          className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-zinc-300 resize-none"
         />
 
         {/* Übung abgeschlossen */}
@@ -176,10 +176,10 @@ export default function ExerciseCard({ uebung, state, onChange }) {
             onChange={(e) => setAbgeschlossen(e.target.checked)}
             className="w-5 h-5 rounded"
           />
-          <span className={`text-sm font-medium ${abgeschlossen ? 'text-orange-400' : 'text-gray-300'}`}>
+          <span className={`text-sm font-medium ${abgeschlossen ? 'text-white' : 'text-gray-300'}`}>
             Übung abgeschlossen
           </span>
-          {abgeschlossen && <span className="text-orange-500">✓</span>}
+          {abgeschlossen && <span className="text-white">✓</span>}
         </label>
       </div>
     </div>

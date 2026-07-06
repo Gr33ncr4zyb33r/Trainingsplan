@@ -4,16 +4,15 @@
 import { useState } from 'react'
 import { useLocalStorage, STORAGE_KEYS } from '../hooks/useStorage'
 import { formatDatum, heuteDatum } from '../utils/progression'
-import { TRAININGSPLAN } from '../data/trainingsplan'
-
-// Flatten aller Übungen für Rekord-Lookup
-const ALLE_UEBUNGEN = TRAININGSPLAN.flatMap((t) => t.uebungen)
+import { useTrainingsplan } from '../hooks/useTrainingsplan'
 
 export default function Fortschritt() {
   const [history] = useLocalStorage(STORAGE_KEYS.TRAINING_HISTORY, [])
   const [koerpergewicht, setKoerpergewicht] = useLocalStorage(STORAGE_KEYS.KOERPERGEWICHT, [])
   const [neuesGewicht, setNeuesGewicht] = useState('')
   const [aktiverTab, setAktivTab] = useState('historie')
+  const { trainingsplan } = useTrainingsplan()
+  const alleUebungen = trainingsplan.flatMap((t) => t.uebungen)
 
   // Persönliche Rekorde aus der Historie berechnen
   const personalRecords = berechnePersonalRecords(history)
@@ -30,7 +29,7 @@ export default function Fortschritt() {
 
   const tabs = [
     { id: 'historie', label: 'Historie' },
-    { id: 'rekorde', label: 'Rekorde' },
+    { id: 'prliste', label: 'PR-Liste' },
     { id: 'koerper', label: 'Körpergewicht' },
   ]
 
@@ -48,31 +47,28 @@ export default function Fortschritt() {
         <StatCard
           label="Trainings"
           value={history.length}
-          icon="🏋️"
         />
         <StatCard
           label="Ø Abschluss"
           value={history.length > 0
             ? `${Math.round(history.reduce((s, h) => s + (h.abschlussProz ?? 0), 0) / history.length)}%`
             : '–'}
-          icon="📊"
         />
         <StatCard
           label="Körpergewicht"
           value={aktuellesKg ? `${aktuellesKg} kg` : '–'}
-          icon="⚖️"
         />
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-gray-800 rounded-lg p-1 gap-1">
+      <div className="flex bg-zinc-900 rounded-lg p-1 gap-1 border border-zinc-700">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setAktivTab(tab.id)}
             className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
               aktiverTab === tab.id
-                ? 'bg-orange-500 text-white'
+                ? 'bg-white text-black'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -83,10 +79,10 @@ export default function Fortschritt() {
 
       {/* Tab-Inhalte */}
       {aktiverTab === 'historie' && (
-        <HistorieTab history={history} />
+        <HistorieTab history={history} alleUebungen={alleUebungen} />
       )}
-      {aktiverTab === 'rekorde' && (
-        <RekordTab records={personalRecords} />
+      {aktiverTab === 'prliste' && (
+        <RekordTab records={personalRecords} alleUebungen={alleUebungen} />
       )}
       {aktiverTab === 'koerper' && (
         <KoerperTab
@@ -128,21 +124,19 @@ function berechnePersonalRecords(history) {
 
 // ── Sub-Komponenten ───────────────────────────────────────
 
-function StatCard({ label, value, icon }) {
+function StatCard({ label, value }) {
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-3 text-center">
-      <div className="text-2xl mb-1">{icon}</div>
+    <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-3 text-center">
       <div className="text-white font-bold text-lg leading-tight">{value}</div>
       <div className="text-gray-500 text-xs">{label}</div>
     </div>
   )
 }
 
-function HistorieTab({ history }) {
+function HistorieTab({ history, alleUebungen }) {
   if (!history.length) {
     return (
       <div className="text-center py-8 text-gray-500">
-        <div className="text-4xl mb-2">📅</div>
         <p>Noch keine Trainingseinheiten.</p>
         <p className="text-sm mt-1">Starte dein erstes Workout!</p>
       </div>
@@ -152,22 +146,22 @@ function HistorieTab({ history }) {
   return (
     <div className="space-y-3">
       {history.map((session) => (
-        <div key={session.id} className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+        <div key={session.id} className="bg-zinc-900 rounded-xl border border-zinc-700 overflow-hidden">
           <div className="flex items-center justify-between p-3">
             <div>
               <div className="text-white font-semibold text-sm">{session.tagName}</div>
               <div className="text-gray-400 text-xs">{formatDatum(session.datum)}</div>
             </div>
             <div className="text-right">
-              <div className="text-orange-500 font-bold">{session.abschlussProz ?? 0}%</div>
+              <div className="text-white font-bold">{session.abschlussProz ?? 0}%</div>
               <div className="text-gray-500 text-xs">abgeschlossen</div>
             </div>
           </div>
 
           {/* Übungsliste */}
-          <div className="border-t border-gray-700 divide-y divide-gray-700/50">
+          <div className="border-t border-zinc-700 divide-y divide-zinc-700/50">
             {session.uebungen?.map((u) => {
-              const uDaten = ALLE_UEBUNGEN.find((e) => e.id === u.id)
+              const uDaten = alleUebungen.find((e) => e.id === u.id)
               const erledigteSaetze = u.saetze?.filter((s) => s.checked).length ?? 0
               const gesamtSaetze = u.saetze?.length ?? 0
               const maxGewicht = u.saetze
@@ -177,7 +171,7 @@ function HistorieTab({ history }) {
               return (
                 <div key={u.id} className="px-3 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${u.abgeschlossen ? 'bg-orange-500' : 'bg-gray-600'}`} />
+                    <span className={`w-2 h-2 rounded-full ${u.abgeschlossen ? 'bg-white' : 'bg-gray-600'}`} />
                     <span className="text-sm text-gray-300">{uDaten?.name ?? u.id}</span>
                   </div>
                   <div className="text-xs text-gray-500">
@@ -194,13 +188,12 @@ function HistorieTab({ history }) {
   )
 }
 
-function RekordTab({ records }) {
+function RekordTab({ records, alleUebungen }) {
   const hatRekorde = Object.keys(records).length > 0
 
   if (!hatRekorde) {
     return (
       <div className="text-center py-8 text-gray-500">
-        <div className="text-4xl mb-2">🏆</div>
         <p>Noch keine Rekorde.</p>
         <p className="text-sm mt-1">Schließe Sätze ab um Rekorde zu setzen!</p>
       </div>
@@ -209,10 +202,10 @@ function RekordTab({ records }) {
 
   return (
     <div className="space-y-2">
-      {ALLE_UEBUNGEN.filter((u) => records[u.id]).map((uebung) => {
+      {alleUebungen.filter((u) => records[u.id]).map((uebung) => {
         const rec = records[uebung.id]
         return (
-          <div key={uebung.id} className="bg-gray-800 rounded-xl border border-gray-700 p-3 flex items-center justify-between">
+          <div key={uebung.id} className="bg-zinc-900 rounded-xl border border-zinc-700 p-3 flex items-center justify-between">
             <div>
               <div className="text-white text-sm font-medium">{uebung.name}</div>
               <div className="text-gray-400 text-xs mt-0.5">
@@ -220,7 +213,7 @@ function RekordTab({ records }) {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-orange-500 font-bold text-sm">🏆 {rec.rm1} kg</div>
+              <div className="text-white font-bold text-sm">{rec.rm1} kg</div>
               <div className="text-gray-500 text-xs">geschätzter 1RM</div>
             </div>
           </div>
@@ -237,7 +230,7 @@ function KoerperTab({ koerpergewicht, neuesGewicht, setNeuesGewicht, onAdd }) {
   return (
     <div className="space-y-4">
       {/* Eingabe */}
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+      <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-4">
         <h3 className="text-sm font-semibold text-gray-300 mb-3">Körpergewicht eintragen</h3>
         <div className="flex gap-2">
           <input
@@ -248,14 +241,14 @@ function KoerperTab({ koerpergewicht, neuesGewicht, setNeuesGewicht, onAdd }) {
             value={neuesGewicht}
             onChange={(e) => setNeuesGewicht(e.target.value)}
             placeholder="kg"
-            className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500"
+            className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-300"
             onKeyDown={(e) => e.key === 'Enter' && onAdd()}
           />
           <button
             onClick={onAdd}
-            className="bg-orange-500 hover:bg-orange-400 text-white font-semibold px-4 rounded-lg transition-colors"
+            className="bg-white hover:bg-zinc-200 text-black font-semibold px-4 rounded-lg transition-colors"
           >
-            +
+            Speichern
           </button>
         </div>
       </div>
@@ -263,7 +256,6 @@ function KoerperTab({ koerpergewicht, neuesGewicht, setNeuesGewicht, onAdd }) {
       {/* Verlauf */}
       {koerpergewicht.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          <div className="text-4xl mb-2">⚖️</div>
           <p>Noch keine Einträge.</p>
         </div>
       ) : (
@@ -275,12 +267,12 @@ function KoerperTab({ koerpergewicht, neuesGewicht, setNeuesGewicht, onAdd }) {
 
           {/* Liste */}
           {koerpergewicht.slice(0, 20).map((eintrag, i) => (
-            <div key={eintrag.datum + i} className="bg-gray-800 rounded-xl border border-gray-700 p-3 flex justify-between items-center">
+            <div key={eintrag.datum + i} className="bg-zinc-900 rounded-xl border border-zinc-700 p-3 flex justify-between items-center">
               <span className="text-gray-400 text-sm">{formatDatum(eintrag.datum)}</span>
               <div className="flex items-center gap-2">
                 <span className="text-white font-semibold">{eintrag.gewicht} kg</span>
                 {i < koerpergewicht.length - 1 && (
-                  <span className={`text-xs ${eintrag.gewicht < koerpergewicht[i + 1].gewicht ? 'text-green-400' : eintrag.gewicht > koerpergewicht[i + 1].gewicht ? 'text-red-400' : 'text-gray-500'}`}>
+                  <span className={`text-xs ${eintrag.gewicht < koerpergewicht[i + 1].gewicht ? 'text-gray-200' : eintrag.gewicht > koerpergewicht[i + 1].gewicht ? 'text-gray-200' : 'text-gray-500'}`}>
                     {eintrag.gewicht < koerpergewicht[i + 1].gewicht ? '↓' : eintrag.gewicht > koerpergewicht[i + 1].gewicht ? '↑' : '→'}
                   </span>
                 )}
@@ -312,12 +304,12 @@ function SimpleChart({ data }) {
   })
 
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-3">
+    <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-3">
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height: 80 }}>
         <polyline
           points={points.join(' ')}
           fill="none"
-          stroke="#f97316"
+          stroke="#ffffff"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -325,7 +317,7 @@ function SimpleChart({ data }) {
         {values.map((v, i) => {
           const [x, y] = points[i].split(',')
           return (
-            <circle key={i} cx={x} cy={y} r="3" fill="#f97316" />
+            <circle key={i} cx={x} cy={y} r="3" fill="#ffffff" />
           )
         })}
       </svg>

@@ -1,18 +1,40 @@
-/**
- * Trainingsplan – Übersicht des gesamten Plans
- * Zeigt alle Trainingstage mit Übungen, Soll-Gewichten und Sätzen/Wdh.
- * Ermöglicht auch das manuelle Starten eines beliebigen Trainingstages.
- */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TRAININGSPLAN } from '../data/trainingsplan'
 import { useLocalStorage, STORAGE_KEYS } from '../hooks/useStorage'
 import { heuteDatum } from '../utils/progression'
+import { useTrainingsplan } from '../hooks/useTrainingsplan'
+import { DEFAULT_EXERCISE_VALUES } from '../data/planDefaults'
+import { numberOrDefault } from '../utils/number'
+
+const NEUE_UEBUNG = {
+  name: '',
+  ...DEFAULT_EXERCISE_VALUES,
+}
+
+function toId(name) {
+  const normalized = name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+  return normalized || 'uebung-ohne-name'
+}
+
+function uniqueSuffix() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
+}
 
 export default function TrainingsplanPage() {
   const [offenerTag, setOffenerTag] = useState(null)
+  const [bearbeiteTag, setBearbeiteTag] = useState(null)
+  const [neueUebung, setNeueUebung] = useState({})
+  const [formularFehler, setFormularFehler] = useState({})
   const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.WORKOUT_SESSIONS, {})
   const [aktuelleGewichte] = useLocalStorage(STORAGE_KEYS.AKTUELLE_GEWICHTE, {})
+  const { trainingsplan, updateTag } = useTrainingsplan()
   const navigate = useNavigate()
 
   function starteManuellesWorkout(tag) {
@@ -37,32 +59,69 @@ export default function TrainingsplanPage() {
       }))
     }
 
-    // Navigiert zur Heute-Seite um das Workout zu starten
     navigate('/')
+  }
+
+  function updateExercise(tagId, exerciseId, field, value) {
+    updateTag(tagId, (tag) => ({
+      ...tag,
+      uebungen: tag.uebungen.map((uebung) => (
+        uebung.id === exerciseId
+          ? { ...uebung, [field]: value }
+          : uebung
+      )),
+    }))
+  }
+
+  function removeExercise(tagId, exerciseId) {
+    updateTag(tagId, (tag) => ({
+      ...tag,
+      uebungen: tag.uebungen.filter((uebung) => uebung.id !== exerciseId),
+    }))
+  }
+
+  function addExercise(tagId) {
+    const eingabe = neueUebung[tagId] ?? NEUE_UEBUNG
+    if (!eingabe.name?.trim()) {
+      setFormularFehler((prev) => ({ ...prev, [tagId]: 'Bitte einen Übungsnamen eingeben.' }))
+      return
+    }
+    setFormularFehler((prev) => ({ ...prev, [tagId]: '' }))
+
+    updateTag(tagId, (tag) => ({
+      ...tag,
+      uebungen: [
+        ...tag.uebungen,
+        {
+          id: `${toId(eingabe.name)}-${uniqueSuffix()}`,
+          name: eingabe.name.trim(),
+          sollgewicht: numberOrDefault(eingabe.sollgewicht, DEFAULT_EXERCISE_VALUES.sollgewicht),
+          saetze: numberOrDefault(eingabe.saetze, DEFAULT_EXERCISE_VALUES.saetze),
+          wdhMin: numberOrDefault(eingabe.wdhMin, DEFAULT_EXERCISE_VALUES.wdhMin),
+          wdhMax: numberOrDefault(eingabe.wdhMax, DEFAULT_EXERCISE_VALUES.wdhMax),
+        },
+      ],
+    }))
+
+    setNeueUebung((prev) => ({ ...prev, [tagId]: NEUE_UEBUNG }))
   }
 
   return (
     <div className="p-4 space-y-4">
       <div>
         <h2 className="text-xl font-bold text-white">Trainingsplan</h2>
-        <p className="text-gray-400 text-sm mt-1">Mo · Do · Fr – 3 Einheiten pro Woche</p>
+        <p className="text-gray-400 text-sm mt-1">Bearbeitbar, lokal gespeichert, fokussiert.</p>
       </div>
 
-      {TRAININGSPLAN.map((tag) => (
-        <div key={tag.id} className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-          {/* Tag-Header */}
+      {trainingsplan.map((tag) => (
+        <div key={tag.id} className="bg-zinc-900 rounded-xl border border-zinc-700 overflow-hidden">
           <button
             onClick={() => setOffenerTag(offenerTag === tag.id ? null : tag.id)}
-            className="w-full flex items-center justify-between p-4 hover:bg-gray-750 transition-colors"
+            className="w-full flex items-center justify-between p-4 hover:bg-zinc-800 transition-colors"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
-                <span className="text-orange-500 font-bold text-sm">{tag.tag.slice(0, 2)}</span>
-              </div>
-              <div className="text-left">
-                <div className="text-white font-semibold">{tag.tag}</div>
-                <div className="text-gray-400 text-xs">{tag.uebungen.length} Übungen</div>
-              </div>
+            <div className="text-left">
+              <div className="text-white font-semibold">{tag.tag}</div>
+              <div className="text-gray-400 text-xs">{tag.uebungen.length} Übungen</div>
             </div>
             <svg
               className={`w-5 h-5 text-gray-400 transition-transform ${offenerTag === tag.id ? 'rotate-180' : ''}`}
@@ -72,63 +131,175 @@ export default function TrainingsplanPage() {
             </svg>
           </button>
 
-          {/* Übungsliste */}
           {offenerTag === tag.id && (
-            <div className="border-t border-gray-700">
-              {/* Übungen */}
-              <div className="divide-y divide-gray-700/50">
-                {tag.uebungen.map((uebung, i) => (
-                  <div key={uebung.id} className="px-4 py-3 flex items-start gap-3">
-                    <span className="text-orange-500 font-bold text-sm w-6 shrink-0 mt-0.5">{i + 1}</span>
-                    <div className="flex-1">
-                      <div className="text-white text-sm font-medium">{uebung.name}</div>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                        <span className="text-xs text-gray-400">
-                          {uebung.saetze} Sätze
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {uebung.wdhMin}–{uebung.wdhMax} Wdh
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          Soll: {uebung.sollgewicht === 0 ? 'KG' : `${uebung.sollgewicht} kg`}
-                        </span>
+            <div className="border-t border-zinc-700">
+              <div className="flex gap-2 p-3 border-b border-zinc-700">
+                <button
+                  onClick={() => setBearbeiteTag(bearbeiteTag === tag.id ? null : tag.id)}
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600 font-medium py-2 rounded-lg text-sm transition-colors"
+                >
+                  {bearbeiteTag === tag.id ? 'Bearbeitung schließen' : 'Plan bearbeiten'}
+                </button>
+                <button
+                  onClick={() => starteManuellesWorkout(tag)}
+                  className="flex-1 bg-white hover:bg-zinc-200 text-black font-semibold py-2 rounded-lg text-sm transition-colors"
+                >
+                  {tag.tag}-Training starten
+                </button>
+              </div>
+
+              <div className="divide-y divide-zinc-700/50">
+                {tag.uebungen.map((uebung) => (
+                  <div key={uebung.id} className="px-3 py-3">
+                    {bearbeiteTag === tag.id ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={uebung.name}
+                          onChange={(e) => updateExercise(tag.id, uebung.id, 'name', e.target.value)}
+                          className="col-span-2 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-300"
+                        />
+                        <LabeledNumberInput
+                          label="Sollgewicht"
+                          value={uebung.sollgewicht}
+                          onChange={(value) => updateExercise(tag.id, uebung.id, 'sollgewicht', value)}
+                        />
+                        <LabeledNumberInput
+                          label="Sätze"
+                          value={uebung.saetze}
+                          onChange={(value) => updateExercise(tag.id, uebung.id, 'saetze', value)}
+                        />
+                        <LabeledNumberInput
+                          label="Wdh min"
+                          value={uebung.wdhMin}
+                          onChange={(value) => updateExercise(tag.id, uebung.id, 'wdhMin', value)}
+                        />
+                        <LabeledNumberInput
+                          label="Wdh max"
+                          value={uebung.wdhMax}
+                          onChange={(value) => updateExercise(tag.id, uebung.id, 'wdhMax', value)}
+                        />
+                        <button
+                          onClick={() => removeExercise(tag.id, uebung.id)}
+                          className="col-span-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-gray-200 text-sm py-2 rounded-lg transition-colors"
+                        >
+                          Übung entfernen
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-white text-sm font-medium">{uebung.name}</div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {uebung.saetze} Sätze · {uebung.wdhMin}–{uebung.wdhMax} Wdh · Soll: {uebung.sollgewicht === 0 ? 'KG' : `${uebung.sollgewicht} kg`}
+                          </div>
+                        </div>
                         {aktuelleGewichte[uebung.id] !== undefined &&
                           aktuelleGewichte[uebung.id] !== uebung.sollgewicht && (
-                            <span className="text-xs text-orange-400 font-medium">
+                            <span className="text-xs text-gray-200 border border-zinc-600 rounded-full px-2 py-0.5">
                               Aktuell: {aktuelleGewichte[uebung.id]} kg
                             </span>
                           )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
 
-              {/* Manuell starten */}
-              <div className="p-4 border-t border-gray-700">
-                <button
-                  onClick={() => starteManuellesWorkout(tag)}
-                  className="w-full bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 font-semibold py-2 rounded-lg text-sm transition-colors"
-                >
-                  {tag.tag}-Training starten →
-                </button>
-              </div>
+              {bearbeiteTag === tag.id && (
+                <div className="p-3 border-t border-zinc-700 space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Neue Übung"
+                    value={(neueUebung[tag.id] ?? NEUE_UEBUNG).name}
+                    onChange={(e) =>
+                      setNeueUebung((prev) => ({
+                        ...prev,
+                        [tag.id]: { ...(prev[tag.id] ?? NEUE_UEBUNG), name: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-300"
+                  />
+                  {formularFehler[tag.id] && (
+                    <p className="text-xs text-gray-300">{formularFehler[tag.id]}</p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <LabeledNumberInput
+                      label="Sollgewicht"
+                      value={(neueUebung[tag.id] ?? NEUE_UEBUNG).sollgewicht}
+                      onChange={(value) =>
+                        setNeueUebung((prev) => ({
+                          ...prev,
+                          [tag.id]: { ...(prev[tag.id] ?? NEUE_UEBUNG), sollgewicht: value },
+                        }))
+                      }
+                    />
+                    <LabeledNumberInput
+                      label="Sätze"
+                      value={(neueUebung[tag.id] ?? NEUE_UEBUNG).saetze}
+                      onChange={(value) =>
+                        setNeueUebung((prev) => ({
+                          ...prev,
+                          [tag.id]: { ...(prev[tag.id] ?? NEUE_UEBUNG), saetze: value },
+                        }))
+                      }
+                    />
+                    <LabeledNumberInput
+                      label="Wdh min"
+                      value={(neueUebung[tag.id] ?? NEUE_UEBUNG).wdhMin}
+                      onChange={(value) =>
+                        setNeueUebung((prev) => ({
+                          ...prev,
+                          [tag.id]: { ...(prev[tag.id] ?? NEUE_UEBUNG), wdhMin: value },
+                        }))
+                      }
+                    />
+                    <LabeledNumberInput
+                      label="Wdh max"
+                      value={(neueUebung[tag.id] ?? NEUE_UEBUNG).wdhMax}
+                      onChange={(value) =>
+                        setNeueUebung((prev) => ({
+                          ...prev,
+                          [tag.id]: { ...(prev[tag.id] ?? NEUE_UEBUNG), wdhMax: value },
+                        }))
+                      }
+                    />
+                  </div>
+                  <button
+                    onClick={() => addExercise(tag.id)}
+                    className="w-full bg-white hover:bg-zinc-200 text-black font-semibold py-2 rounded-lg transition-colors"
+                  >
+                    Übung hinzufügen
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       ))}
 
-      {/* Legende */}
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 space-y-2">
-        <h3 className="text-sm font-semibold text-gray-300">Progression</h3>
+      <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-4 space-y-2">
+        <h3 className="text-sm font-semibold text-gray-200">Hinweis</h3>
         <p className="text-xs text-gray-400">
-          Wenn alle Sätze mit maximalen Wiederholungen abgeschlossen werden,
-          wird beim nächsten Training eine Gewichtserhöhung empfohlen (+2,5 kg / +5 kg bei Beinübungen).
-        </p>
-        <p className="text-xs text-gray-400">
-          Nach <span className="text-yellow-400 font-medium">6 Wochen</span> wird ein Deload empfohlen.
+          Änderungen am Trainingsplan werden automatisch lokal gespeichert und in neuen Workouts verwendet.
         </p>
       </div>
     </div>
+  )
+}
+
+function LabeledNumberInput({ label, value, onChange }) {
+  return (
+    <label className="text-xs text-gray-400">
+      <span className="block mb-1">{label}</span>
+      <input
+        type="number"
+        min="0"
+        step="0.5"
+        value={value}
+        onChange={(e) => onChange(numberOrDefault(e.target.value, value))}
+        className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:border-zinc-300"
+      />
+    </label>
   )
 }

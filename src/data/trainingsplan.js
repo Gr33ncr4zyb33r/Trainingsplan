@@ -4,7 +4,7 @@
  * Jede Übung hat: Name, Sollgewicht, Sätze, Wiederholungsbereich (min/max)
  */
 
-export const TRAININGSPLAN = [
+export const STANDARD_TRAININGSPLAN = [
   {
     id: 'montag',
     tag: 'Montag',
@@ -219,14 +219,14 @@ export const TRAININGSPLAN = [
  * Gibt den Trainingstag für den aktuellen Wochentag zurück.
  * null wenn kein Training heute.
  */
-export function getHeutigerTrainingTag() {
+export function getHeutigerTrainingTag(plan = STANDARD_TRAININGSPLAN) {
   const heute = new Date().getDay() // 0=So, 1=Mo, ... 6=Sa
-  return TRAININGSPLAN.find((t) => t.wochentag === heute) ?? null
+  return plan.find((t) => t.wochentag === heute) ?? null
 }
 
 /**
  * Gibt einen Trainingstag nach ID zurück.
  */
-export function getTrainingTagById(id) {
-  return TRAININGSPLAN.find((t) => t.id === id) ?? null
+export function getTrainingTagById(id, plan = STANDARD_TRAININGSPLAN) {
+  return plan.find((t) => t.id === id) ?? null
 }

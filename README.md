@@ -5,9 +5,10 @@ Eine moderne Progressive Web App (PWA) zur Verwaltung deines persönlichen Train
 ## Features
 
 - 📱 **Mobile-First Design** – optimiert für Smartphone
-- 🌙 **Dark Theme** – modernes, augenfreundliches Design
+- ⚫⚪ **Schwarz-Weiß Design** – minimalistisches, professionelles UI
 - 📲 **Installierbar als PWA** – füge die App zum Homescreen hinzu
 - 💾 **Lokale Datenspeicherung** – alle Daten bleiben auf deinem Gerät (localStorage)
+- ✍️ **Trainingsplan bearbeitbar** – Übungen je Trainingstag anpassen, hinzufügen, entfernen
 - 🔒 **Keine Anmeldung** – kein Account, keine Cloud
 - 🚀 **GitHub Pages** – einfaches Deployment
 
@@ -22,8 +23,8 @@ Eine moderne Progressive Web App (PWA) zur Verwaltung deines persönlichen Train
 ## Navigation
 
 - **Heute** – Aktuelle Trainingseinheit mit Sätzen, Gewichten, Wiederholungen, RIR und Notizen
-- **Trainingsplan** – Übersicht des gesamten Plans
-- **Fortschritt** – Trainingshistorie, persönliche Rekorde, Körpergewicht
+- **Trainingsplan** – Übersicht und Bearbeitung des gesamten Plans
+- **Fortschritt** – Trainingshistorie, PR-Liste, Körpergewicht
 - **Einstellungen** – Gewichte anpassen, Daten verwalten
 
 ## Automatische Progression
