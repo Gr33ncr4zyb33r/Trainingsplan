@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useLocalStorage, STORAGE_KEYS } from '../hooks/useStorage'
 import { heuteDatum } from '../utils/progression'
 import { useTrainingsplan } from '../hooks/useTrainingsplan'
+import { DEFAULT_EXERCISE_VALUES } from '../data/planDefaults'
+import { numberOrDefault } from '../utils/number'
 
 const NEUE_UEBUNG = {
   name: '',
-  sollgewicht: 0,
-  saetze: 3,
-  wdhMin: 8,
-  wdhMax: 12,
+  ...DEFAULT_EXERCISE_VALUES,
 }
 
 function toId(name) {
@@ -18,13 +17,21 @@ function toId(name) {
     .trim()
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '')
-  return normalized || `uebung-${Date.now()}`
+  return normalized || 'uebung-ohne-name'
+}
+
+function uniqueSuffix() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 }
 
 export default function TrainingsplanPage() {
   const [offenerTag, setOffenerTag] = useState(null)
   const [bearbeiteTag, setBearbeiteTag] = useState(null)
   const [neueUebung, setNeueUebung] = useState({})
+  const [formularFehler, setFormularFehler] = useState({})
   const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.WORKOUT_SESSIONS, {})
   const [aktuelleGewichte] = useLocalStorage(STORAGE_KEYS.AKTUELLE_GEWICHTE, {})
   const { trainingsplan, updateTag } = useTrainingsplan()
@@ -75,19 +82,23 @@ export default function TrainingsplanPage() {
 
   function addExercise(tagId) {
     const eingabe = neueUebung[tagId] ?? NEUE_UEBUNG
-    if (!eingabe.name?.trim()) return
+    if (!eingabe.name?.trim()) {
+      setFormularFehler((prev) => ({ ...prev, [tagId]: 'Bitte einen Übungsnamen eingeben.' }))
+      return
+    }
+    setFormularFehler((prev) => ({ ...prev, [tagId]: '' }))
 
     updateTag(tagId, (tag) => ({
       ...tag,
       uebungen: [
         ...tag.uebungen,
         {
-          id: `${toId(eingabe.name)}-${Date.now().toString().slice(-5)}`,
+          id: `${toId(eingabe.name)}-${uniqueSuffix()}`,
           name: eingabe.name.trim(),
-          sollgewicht: Number(eingabe.sollgewicht) || 0,
-          saetze: Number(eingabe.saetze) || 3,
-          wdhMin: Number(eingabe.wdhMin) || 8,
-          wdhMax: Number(eingabe.wdhMax) || 12,
+          sollgewicht: numberOrDefault(eingabe.sollgewicht, DEFAULT_EXERCISE_VALUES.sollgewicht),
+          saetze: numberOrDefault(eingabe.saetze, DEFAULT_EXERCISE_VALUES.saetze),
+          wdhMin: numberOrDefault(eingabe.wdhMin, DEFAULT_EXERCISE_VALUES.wdhMin),
+          wdhMax: numberOrDefault(eingabe.wdhMax, DEFAULT_EXERCISE_VALUES.wdhMax),
         },
       ],
     }))
@@ -209,6 +220,9 @@ export default function TrainingsplanPage() {
                     }
                     className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-300"
                   />
+                  {formularFehler[tag.id] && (
+                    <p className="text-xs text-gray-300">{formularFehler[tag.id]}</p>
+                  )}
                   <div className="grid grid-cols-2 gap-2">
                     <LabeledNumberInput
                       label="Sollgewicht"
@@ -283,7 +297,7 @@ function LabeledNumberInput({ label, value, onChange }) {
         min="0"
         step="0.5"
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => onChange(numberOrDefault(e.target.value, value))}
         className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:border-zinc-300"
       />
     </label>

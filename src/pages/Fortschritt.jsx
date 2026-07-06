@@ -29,7 +29,7 @@ export default function Fortschritt() {
 
   const tabs = [
     { id: 'historie', label: 'Historie' },
-    { id: 'rekorde', label: 'PR-Liste' },
+    { id: 'prliste', label: 'PR-Liste' },
     { id: 'koerper', label: 'Körpergewicht' },
   ]
 
@@ -81,7 +81,7 @@ export default function Fortschritt() {
       {aktiverTab === 'historie' && (
         <HistorieTab history={history} alleUebungen={alleUebungen} />
       )}
-      {aktiverTab === 'rekorde' && (
+      {aktiverTab === 'prliste' && (
         <RekordTab records={personalRecords} alleUebungen={alleUebungen} />
       )}
       {aktiverTab === 'koerper' && (

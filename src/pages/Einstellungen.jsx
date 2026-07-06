@@ -6,6 +6,8 @@ import { useLocalStorage, STORAGE_KEYS } from '../hooks/useStorage'
 import { STANDARD_TRAININGSPLAN } from '../data/trainingsplan'
 import { useTrainingsplan } from '../hooks/useTrainingsplan'
 
+const STANDARD_UEBUNGEN_COUNT = STANDARD_TRAININGSPLAN.reduce((sum, tag) => sum + tag.uebungen.length, 0)
+
 export default function Einstellungen() {
   const [aktuelleGewichte, setAktuelleGewichte] = useLocalStorage(STORAGE_KEYS.AKTUELLE_GEWICHTE, {})
   const [trainingswoche, setTrainingswoche] = useLocalStorage(STORAGE_KEYS.TRAININGSWOCHE, 1)
@@ -55,7 +57,6 @@ export default function Einstellungen() {
   }
 
   const ALLE_UEBUNGEN = trainingsplan.flatMap((t) => t.uebungen)
-  const standardUebungen = STANDARD_TRAININGSPLAN.reduce((sum, tag) => sum + tag.uebungen.length, 0)
 
   return (
     <div className="p-4 space-y-4">
@@ -169,7 +170,7 @@ export default function Einstellungen() {
           </div>
           <div className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm">
             <span className="text-gray-300">Aktive Plan-Übungen</span>
-            <span className="text-white font-medium">{ALLE_UEBUNGEN.length}/{standardUebungen}</span>
+            <span className="text-white font-medium">{ALLE_UEBUNGEN.length}/{STANDARD_UEBUNGEN_COUNT}</span>
           </div>
 
           <p className="text-gray-500 text-xs px-1 pt-1">

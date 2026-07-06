@@ -230,5 +230,3 @@ export function getHeutigerTrainingTag(plan = STANDARD_TRAININGSPLAN) {
 export function getTrainingTagById(id, plan = STANDARD_TRAININGSPLAN) {
   return plan.find((t) => t.id === id) ?? null
 }
-
-export const TRAININGSPLAN = STANDARD_TRAININGSPLAN
