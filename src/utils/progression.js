@@ -49,7 +49,7 @@ export function getProgressionsFeedback(uebungState, uebungId) {
  * @returns {boolean}
  */
 export function istDeloadEmpfohlen(woche) {
-  return woche > 0 && woche % 6 === 0
+  return woche >= 6 && woche % 6 === 0
 }
 
 /**

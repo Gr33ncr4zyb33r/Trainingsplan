@@ -6,11 +6,6 @@ import { useLocalStorage, STORAGE_KEYS } from '../hooks/useStorage'
 import { TRAININGSPLAN } from '../data/trainingsplan'
 
 export default function Einstellungen() {
-  const [_einstellungen, _setEinstellungen] = useLocalStorage(STORAGE_KEYS.EINSTELLUNGEN, {
-    benachrichtigungen: false,
-    gewichtseinheit: 'kg',
-    sprache: 'de',
-  })
   const [aktuelleGewichte, setAktuelleGewichte] = useLocalStorage(STORAGE_KEYS.AKTUELLE_GEWICHTE, {})
   const [trainingswoche, setTrainingswoche] = useLocalStorage(STORAGE_KEYS.TRAININGSWOCHE, 1)
   const [sessions, , removeSessions] = useLocalStorage(STORAGE_KEYS.WORKOUT_SESSIONS, {})
