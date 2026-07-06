@@ -8,7 +8,8 @@ import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import ExerciseCard from '../components/ExerciseCard'
 import { useLocalStorage, STORAGE_KEYS } from '../hooks/useStorage'
-import { getHeutigerTrainingTag, TRAININGSPLAN } from '../data/trainingsplan'
+import { getHeutigerTrainingTag } from '../data/trainingsplan'
+import { useTrainingsplan } from '../hooks/useTrainingsplan'
 import {
   berechneAbschlussProz,
   heuteDatum,
@@ -21,8 +22,9 @@ export default function Heute() {
   const [trainingswoche, setTrainingswoche] = useLocalStorage(STORAGE_KEYS.TRAININGSWOCHE, 1)
   const [aktuelleGewichte, setAktuelleGewichte] = useLocalStorage(STORAGE_KEYS.AKTUELLE_GEWICHTE, {})
   const [workoutAbgeschlossen, setWorkoutAbgeschlossen] = useState(false)
+  const { trainingsplan } = useTrainingsplan()
 
-  const trainingstag = getHeutigerTrainingTag()
+  const trainingstag = getHeutigerTrainingTag(trainingsplan)
   const datum = heuteDatum()
 
   // Session-Key: tagId + datum
@@ -115,7 +117,6 @@ export default function Heute() {
     return (
       <div className="p-4 space-y-4">
         <div className="text-center py-12 space-y-4">
-          <div className="text-6xl">😴</div>
           <h2 className="text-2xl font-bold text-white">Ruhetag</h2>
           <p className="text-gray-400">Heute ist kein Training geplant.</p>
           <p className="text-gray-500 text-sm">
@@ -127,11 +128,11 @@ export default function Heute() {
         <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
           <h3 className="text-sm font-semibold text-gray-300 mb-3">Manuell starten</h3>
           <div className="space-y-2">
-            {TRAININGSPLAN.map((tag) => (
+            {trainingsplan.map((tag) => (
               <Link
                 key={tag.id}
                 to={`/plan/${tag.id}`}
-                className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+                className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors border border-zinc-700"
               >
                 <span className="text-white font-medium">{tag.tag}</span>
                 <span className="text-gray-400 text-sm">{tag.uebungen.length} Übungen →</span>
@@ -146,9 +147,9 @@ export default function Heute() {
   // ── Deload-Hinweis ────────────────────────────────────────
   const DeloadBanner = () =>
     deloadHinweis ? (
-      <div className="mx-4 mt-4 p-3 bg-yellow-900/40 border border-yellow-700/50 rounded-xl">
-        <p className="text-yellow-400 text-sm font-semibold">⚡ Deload-Woche empfohlen!</p>
-        <p className="text-yellow-300/80 text-xs mt-1">
+      <div className="mx-4 mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded-xl">
+        <p className="text-white text-sm font-semibold">Deload-Woche empfohlen</p>
+        <p className="text-gray-300 text-xs mt-1">
           Du trainierst seit {trainingswoche} Wochen. Reduziere diese Woche das Gewicht auf ~60% und erhöhe danach wieder progressiv.
         </p>
       </div>
@@ -160,7 +161,6 @@ export default function Heute() {
       <div className="p-4 space-y-4">
         <DeloadBanner />
         <div className="text-center py-8 space-y-2">
-          <div className="text-5xl">🏋️</div>
           <h2 className="text-xl font-bold text-white">{trainingstag.tag}</h2>
           <p className="text-gray-400 text-sm">
             {trainingstag.uebungen.length} Übungen · Woche {trainingswoche}
@@ -170,7 +170,7 @@ export default function Heute() {
         <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 space-y-2">
           {trainingstag.uebungen.map((u) => (
             <div key={u.id} className="flex items-center gap-2 text-gray-300 text-sm">
-              <span className="text-orange-500">•</span>
+              <span className="text-gray-300">•</span>
               <span>{u.name}</span>
               <span className="text-gray-500 text-xs ml-auto">
                 {u.saetze}×{u.wdhMin}–{u.wdhMax}
@@ -181,9 +181,9 @@ export default function Heute() {
 
         <button
           onClick={startWorkout}
-          className="w-full bg-orange-500 hover:bg-orange-400 active:bg-orange-600 text-white font-bold py-4 rounded-xl text-lg transition-colors"
+          className="w-full bg-white hover:bg-zinc-200 active:bg-zinc-300 text-black font-bold py-4 rounded-xl text-lg transition-colors"
         >
-          Training starten 💪
+          Training starten
         </button>
       </div>
     )
@@ -194,15 +194,14 @@ export default function Heute() {
     return (
       <div className="p-4 space-y-4 text-center">
         <div className="py-8 space-y-3">
-          <div className="text-6xl">🎉</div>
           <h2 className="text-2xl font-bold text-white">Training abgeschlossen!</h2>
           <p className="text-gray-400">{trainingstag.tag} · {datum}</p>
-          <div className="text-4xl font-bold text-orange-500">{fortschrittProz}%</div>
+          <div className="text-4xl font-bold text-white">{fortschrittProz}%</div>
           <p className="text-gray-400 text-sm">Übungen erledigt</p>
         </div>
         <Link
           to="/fortschritt"
-          className="block w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-3 rounded-xl transition-colors"
+          className="block w-full bg-white hover:bg-zinc-200 text-black font-bold py-3 rounded-xl transition-colors"
         >
           Fortschritt ansehen →
         </Link>
@@ -228,7 +227,7 @@ export default function Heute() {
               <circle cx="28" cy="28" r="22" fill="none" stroke="#374151" strokeWidth="4" />
               <circle
                 cx="28" cy="28" r="22" fill="none"
-                stroke="#f97316" strokeWidth="4"
+                stroke="#ffffff" strokeWidth="4"
                 strokeDasharray={`${2 * Math.PI * 22}`}
                 strokeDashoffset={`${2 * Math.PI * 22 * (1 - fortschrittProz / 100)}`}
                 strokeLinecap="round"
@@ -257,7 +256,7 @@ export default function Heute() {
       {/* Training beenden */}
       <button
         onClick={beendeWorkout}
-        className="w-full bg-orange-500 hover:bg-orange-400 active:bg-orange-600 text-white font-bold py-4 rounded-xl text-lg transition-colors mt-4"
+        className="w-full bg-white hover:bg-zinc-200 active:bg-zinc-300 text-black font-bold py-4 rounded-xl text-lg transition-colors mt-4"
       >
         Training beenden ✓
       </button>

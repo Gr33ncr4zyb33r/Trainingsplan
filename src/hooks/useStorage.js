@@ -45,6 +45,8 @@ export function useLocalStorage(key, initialValue) {
  * Key-Präfixe für localStorage
  */
 export const STORAGE_KEYS = {
+  // Benutzerdefinierter Trainingsplan
+  TRAININGSPLAN_CUSTOM: 'tp_trainingsplan_custom',
   // Aktuelles Workout: { [tagId]: { datum, uebungen: [...], abgeschlossen } }
   WORKOUT_SESSIONS: 'tp_workout_sessions',
   // Trainingshistorie: Array von abgeschlossenen Workouts
