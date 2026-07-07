@@ -30,7 +30,7 @@ export const MICROCOPY_KONSISTENZ = [
   'Konstanz-Champion! Alle Wochen durchgezogen 🏆',
   'Woche für Woche – du erscheinst. Das ist die halbe Miete! ✅',
   'Alle geplanten Einheiten absolviert – Respekt! 🎖️',
-  'Kein Handball-Muskelkater, kein Kompromiss. Meisterhaft! ⚽',
+  'Kein Handball-Muskelkater, kein Kompromiss. Meisterhaft! 🤾',
   'Serie am Laufen! Wer regelmäßig erscheint, gewinnt langfristig 📅',
   'Streak hält! Du beweist: Disziplin schlägt Motivation ⏱️',
 ]
@@ -82,13 +82,13 @@ export function getWochenrueckblickText(aktuell, start, ziel) {
   const gesamtDelta = ziel - start
   const aktuellerFortschritt = aktuell - start
   const prozent = gesamtDelta > 0 ? Math.round((aktuellerFortschritt / gesamtDelta) * 100) : 0
-  const klampedProzent = Math.min(100, Math.max(0, prozent))
+  const clampedProzent = Math.min(100, Math.max(0, prozent))
 
-  if (klampedProzent >= 100) return 'Bankdrücken-Ziel erreicht oder übertroffen! 🎯'
-  if (klampedProzent >= 80)  return `Du bist bei ${klampedProzent} % deines Bankdrücken-Ziels – Endspurt! 🔥`
-  if (klampedProzent >= 50)  return `Du bist bei ${klampedProzent} % deines Bankdrücken-Ziels – guter Fortschritt!`
-  if (klampedProzent >= 25)  return `Du bist bei ${klampedProzent} % deines Bankdrücken-Ziels – Basis wird gelegt.`
-  return `Du bist bei ${klampedProzent} % deines Bankdrücken-Ziels – der Block hat gerade begonnen!`
+  if (clampedProzent >= 100) return 'Bankdrücken-Ziel erreicht oder übertroffen! 🎯'
+  if (clampedProzent >= 80)  return `Du bist bei ${clampedProzent} % deines Bankdrücken-Ziels – Endspurt! 🔥`
+  if (clampedProzent >= 50)  return `Du bist bei ${clampedProzent} % deines Bankdrücken-Ziels – guter Fortschritt!`
+  if (clampedProzent >= 25)  return `Du bist bei ${clampedProzent} % deines Bankdrücken-Ziels – Basis wird gelegt.`
+  return `Du bist bei ${clampedProzent} % deines Bankdrücken-Ziels – der Block hat gerade begonnen!`
 }
 
 // ── Block-Abschluss-Screen Content ───────────────────────────────────────

@@ -11,7 +11,9 @@
  *   SZ-Curl:           50 kg × 8–10 Wdh.  → W9: 50 kg, zurück auf 4×8
  *   OH Trizeps KH:     16 kg/Hand × 10    → W9: 16 kg, zurück auf 4×10
  *
- * Gleiche Fortschrittsregeln wie Block 1.
+ *   'linear'            – Gewicht erhöhen wenn ALLE Sätze der Vorwoche wdhMax-Wiederholungen erreicht
+ *                         UND als „erreicht" markiert wurden. Kein automatisches Reduzieren bei
+ *                         Nicht-Erreichen: gleiches Gewicht nächste Woche wiederholen.
  * Gleiche Gewichts-Konvention: KH-Übungen = Gewicht je Hand.
  */
 

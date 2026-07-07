@@ -66,7 +66,7 @@ export function getPhase(wochenNummer) {
  * @param {'montag'|'donnerstag'|'freitag'} tagId
  * @returns {object|null} Tag-Objekt im trainingsplan.js-Format
  */
-export function getMesozyklumTagAlsPlan(wochenNummer, tagId) {
+export function getMesozyklusTagAlsPlan(wochenNummer, tagId) {
   const tag = getTrainingsTag(wochenNummer, tagId)
   if (!tag) return null
 

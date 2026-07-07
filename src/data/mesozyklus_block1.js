@@ -6,7 +6,9 @@
  *   Mesozyklus > Phasen > Wochen > Trainingstage > Übungen
  *
  * Fortschrittsregeln:
- *   'linear'            – Gewicht steigt wenn ALLE Sätze in der Vorwoche oben im Bereich + erreicht
+ *   'linear'            – Gewicht erhöhen wenn ALLE Sätze der Vorwoche wdhMax-Wiederholungen erreicht
+ *                         UND als „erreicht" markiert wurden. Kein automatisches Reduzieren bei
+ *                         Nicht-Erreichen: gleiches Gewicht nächste Woche wiederholen.
  *   'double_progression'– Wdh. steigern bis wdhMax, dann +2,5 kg und zurück auf wdhMin
  *   'test'              – Maximaltest, kein automatisches Regeln
  *
@@ -417,7 +419,7 @@ const ziele = [
     hinweis: 'Kniebeuge ist am Donnerstag – mindestens 4 Tage vor dem Dienstags-Handball. Bei Muskelkater: Gewicht reduzieren oder Übung anpassen.',
     erreicht: null,
     datum_erreicht: null,
-    positiver_text: 'Konstanz-Champion! Alle 8 Wochen ohne Kompromiss beim Handball 🏆',
+    positiver_text: 'Konstanz-Champion! Alle 8 Wochen ohne Kompromiss beim Handball 🤾',
   },
 ]
 
